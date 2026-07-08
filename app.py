@@ -2,14 +2,20 @@ import streamlit as st
 import google.generativeai as genai
 import os
 
-# 1. SETUP: Is tarike se configure karne se 'AQ.' keys sahi chalti hain
+# 1. SETUP: Local computer aur Streamlit Cloud dono ke liye dynamic check
 GEMINI_API_KEY = "AQ.Ab8RN6L_8afZufZ5B0d47WQmTXUtc9uQhxhCC_jzYhaiOJuvNA"
 
-# Direct client configuration block
-genai.configure(api_key=GEMINI_API_KEY)
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+try:
+    # Pehle check karega agar online secrets hain, nahi to direct upar wali key chalayega
+    if "GEMINI_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport="rest")
+    else:
+        genai.configure(api_key=GEMINI_API_KEY, transport="rest")
+except Exception:
+    # Agar st.secrets local computer par error de, to direct configure karega
+    genai.configure(api_key=GEMINI_API_KEY, transport="rest")
 
-# 2. DATA LOAD: Direct variables me data daal diya taake ghalti ka chance na ho
+# 2. DATA LOAD: Direct variables me data daal diya
 properties_data = """
 Available Properties:
 1. DHA Phase 6 - 500 Sq Yards Luxury House. Price: 8 Crore PKR. 4 Bedrooms, Attached Baths, Beautiful Lawn, Modular Kitchen.
@@ -27,7 +33,7 @@ st.set_page_config(page_title="Elite Real Estate Bot", page_icon="🏡")
 st.title("🏡 Elite Real Estate AI Assistant")
 st.write("Welcome! Main aapko Karachi ki behtareen properties dhoondne me madad karunga.")
 
-# 4. BOT BRAIN: System Instructions jo bot ko unka role samjhayengi
+# 4. BOT BRAIN: System Instructions
 system_instruction = f"""
 Aap Elite Real Estate Karachi ke ek professional, smart aur friendly sales agent hain. 
 Aapka kaam sirf neeche diye gaye 'Properties Data' se parh kar client ko jawab dena hai. 
@@ -66,10 +72,9 @@ if user_input := st.chat_input("DHA, Clifton ya Bahria me ghar chahiye?"):
 
     with st.chat_message("assistant"):
         try:
-            # Explicitly passing the key here to bypass any environment confusion
             response = st.session_state.chat.send_message(user_input)
             answer = response.text
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as e:
-            st.error(f"Authentication Error: {e}. Agar masla barkarar hai, to ek dafa new key create kar ke check karein.")
+            st.error(f"Error: {e}")
