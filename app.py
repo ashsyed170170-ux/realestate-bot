@@ -2,11 +2,12 @@ import streamlit as st
 import google.generativeai as genai
 import os
 
-# 1. SETUP: 'AQ.' keys ko sahi chalane ke liye transport set karna zaroori hai
-GEMINI_API_KEY = "AQ.Ab8RN6L_8afZufZ5B0d47WQmTXUtc9uQhxhCC_jzYhaiOJuvNA"
-
-# Direct client configuration with REST transport to support new AQ. keys
-genai.configure(api_key=GEMINI_API_KEY, transport="rest")
+# 1. SETUP: Streamlit ke cloud dashboard se key uthane ka standard tareeqa
+if "GEMINI_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+else:
+    # Agar aap local computer par chala rahi hain
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 
 # 2. DATA LOAD: Properties Data
 properties_data = """
@@ -21,7 +22,7 @@ Contact Email: info@eliterealestate.com
 Process: If a client is interested in any property or wants to visit, you MUST politely ask for their Name and Phone Number so our human agent can call them back. Do not give any property location details outside of this list.
 """
 
-# 3. INTERFACE: Screen design
+# 3. INTERFACE: Streamlit Screen
 st.set_page_config(page_title="Elite Real Estate Bot", page_icon="🏡")
 st.title("🏡 Elite Real Estate AI Assistant")
 st.write("Welcome! Main aapko Karachi ki behtareen properties dhoondne me madad karunga.")
@@ -40,15 +41,14 @@ Properties Data:
 
 # Gemini Model initialize karna
 try:
-    # Yahan model change kiya hai taake new key format sahi se map ho sake
     model = genai.GenerativeModel(
-        model_name="models/gemini-1.5-flash", 
+        model_name="gemini-2.5-flash",
         system_instruction=system_instruction
     )
     if "chat" not in st.session_state:
         st.session_state.chat = model.start_chat(history=[])
 except Exception as e:
-    st.error(f"Model initialization me masla hai: {e}")
+    st.error("Model configuration me masla hai.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -70,4 +70,4 @@ if user_input := st.chat_input("DHA, Clifton ya Bahria me ghar chahiye?"):
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"Error: {e}\n\nPlease check if GEMINI_API_KEY is correctly saved in Streamlit Secrets.")
