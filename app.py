@@ -2,20 +2,13 @@ import streamlit as st
 import google.generativeai as genai
 import os
 
-# 1. SETUP: Local computer aur Streamlit Cloud dono ke liye dynamic check
+# 1. SETUP: 'AQ.' keys ko sahi chalane ke liye transport set karna zaroori hai
 GEMINI_API_KEY = "AQ.Ab8RN6L_8afZufZ5B0d47WQmTXUtc9uQhxhCC_jzYhaiOJuvNA"
 
-try:
-    # Pehle check karega agar online secrets hain, nahi to direct upar wali key chalayega
-    if "GEMINI_API_KEY" in st.secrets:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport="rest")
-    else:
-        genai.configure(api_key=GEMINI_API_KEY, transport="rest")
-except Exception:
-    # Agar st.secrets local computer par error de, to direct configure karega
-    genai.configure(api_key=GEMINI_API_KEY, transport="rest")
+# Direct client configuration with REST transport to support new AQ. keys
+genai.configure(api_key=GEMINI_API_KEY, transport="rest")
 
-# 2. DATA LOAD: Direct variables me data daal diya
+# 2. DATA LOAD: Properties Data
 properties_data = """
 Available Properties:
 1. DHA Phase 6 - 500 Sq Yards Luxury House. Price: 8 Crore PKR. 4 Bedrooms, Attached Baths, Beautiful Lawn, Modular Kitchen.
@@ -28,7 +21,7 @@ Contact Email: info@eliterealestate.com
 Process: If a client is interested in any property or wants to visit, you MUST politely ask for their Name and Phone Number so our human agent can call them back. Do not give any property location details outside of this list.
 """
 
-# 3. INTERFACE: Streamlit ki screen design
+# 3. INTERFACE: Screen design
 st.set_page_config(page_title="Elite Real Estate Bot", page_icon="🏡")
 st.title("🏡 Elite Real Estate AI Assistant")
 st.write("Welcome! Main aapko Karachi ki behtareen properties dhoondne me madad karunga.")
@@ -47,8 +40,9 @@ Properties Data:
 
 # Gemini Model initialize karna
 try:
+    # Yahan model change kiya hai taake new key format sahi se map ho sake
     model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
+        model_name="models/gemini-1.5-flash", 
         system_instruction=system_instruction
     )
     if "chat" not in st.session_state:
@@ -59,12 +53,11 @@ except Exception as e:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Purani chat screen par dikhana
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 6. USER INPUT: User se message lena aur bot ka jawab dikhana
+# 6. USER INPUT
 if user_input := st.chat_input("DHA, Clifton ya Bahria me ghar chahiye?"):
     with st.chat_message("user"):
         st.markdown(user_input)
