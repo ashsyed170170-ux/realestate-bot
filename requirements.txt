@@ -1,3 +1,2 @@
-google-generativeai
-pypdf
+google-genai
 streamlit
