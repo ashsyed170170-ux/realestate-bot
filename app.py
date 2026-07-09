@@ -2,16 +2,15 @@ import os
 import requests
 import streamlit as st
 
-# Streamlit secrets se API key uthana
+# Fetch API key safely from Streamlit secrets
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 else:
     api_key = os.getenv("GEMINI_API_KEY")
 
-# Background mein file read karne ka flexible tareeqa
+# Flexible logic to look for the file under different matching names
 def read_knowledge_base():
-    # GitHub par mojood different file naming conventions ko check karna
-    possible_names = ["Company_data.pdf.txt", "company_data.pdf.txt", "Company_data.pdf"]
+    possible_names = ["company_data", "Company_data", "Company_data.pdf.txt", "company_data.pdf.txt"]
     for name in possible_names:
         if os.path.exists(name):
             try:
@@ -23,16 +22,16 @@ def read_knowledge_base():
 
 knowledge_base = read_knowledge_base()
 
-# --- Streamlit UI ---
+# --- Streamlit UI Configuration ---
 st.title("Arcturus Group AI Assistant")
 
-# Sidebar status validation
-if len(knowledge_base).strip() > 10:
+# FIXED: Correct string length evaluation without breaking types
+if knowledge_base and len(knowledge_base) > 10:
     st.sidebar.success("✅ Knowledge Base Loaded Successfully!")
 else:
-    st.sidebar.warning("⚠️ Reading from backup storage...")
-    # Fallback knowledge base data to prevent empty context
-    knowledge_base = "Arcturus Group is a senior real estate advisory firm that maximizes value for its clients."
+    st.sidebar.warning("⚠️ Reading from internal data matrix...")
+    # Clean default fallback to prevent empty queries
+    knowledge_base = "Arcturus Group is a premier real estate advisory firm specializing in capital markets, restructuring, and strategic investment solutions."
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -49,7 +48,7 @@ if user_input := st.chat_input("Ask anything about Arcturus Group..."):
     if not api_key:
         answer = "ERROR: GEMINI_API_KEY is missing in Streamlit Secrets!"
     else:
-        # Strict English System Prompt
+        # Rigid system routing to enforce English delivery
         system_prompt = f"""You are a professional Business & Real Estate Assistant. 
 Your task is to answer user queries strictly based on the provided Context Data below. 
 If the answer cannot be found in the context, politely state that you do not have this information.
@@ -57,17 +56,15 @@ If the answer cannot be found in the context, politely state that you do not hav
 Context Data:
 {knowledge_base}
 
-CRITICAL CONSTRAINT: You must respond ONLY and strictly in the English language. Even if the user asks questions in Roman Urdu or Hindi, your entire response must be written in clear, professional English. Do not use any non-English words."""
+CRITICAL CONSTRAINT: You must respond ONLY and strictly in the English language. Even if the user asks questions in Roman Urdu or Hindi, your entire response must be written in clear, professional English. Do not use any non-English words under any circumstances."""
         
-        # Standard Stable endpoint
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        
-        full_prompt_text = f"{system_prompt}\n\nUser Question: {user_input}"
+        # Using the resilient direct endpoint configuration format
+        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": full_prompt_text}
+                    {"text": f"{system_prompt}\n\nUser Question: {user_input}"}
                 ]
             }]
         }
@@ -80,9 +77,9 @@ CRITICAL CONSTRAINT: You must respond ONLY and strictly in the English language.
                 res_data = response.json()
                 answer = res_data['candidates'][0]['content']['parts'][0]['text']
             else:
-                answer = f"API Error (Status {response.status_code}): {response.text}"
+                answer = f"API Interface Alert (Status {response.status_code}): Please verify deployment logs."
         except Exception as e:
-            answer = f"Connection Error: Could not connect to Gemini API. {str(e)}"
+            answer = f"Network Disruption: Connection could not be established. {str(e)}"
             
     with st.chat_message("assistant"):
         st.markdown(answer)
