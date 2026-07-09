@@ -32,7 +32,7 @@ def read_pdf_knowledge_base():
 knowledge_base = read_pdf_knowledge_base()
 
 # --- Streamlit UI Setup ---
-st.title("Arcturus Group AI Assistant")
+st.title("ExplainerCue Group AI Assistant")
 
 # Sidebar status validation
 if knowledge_base and not knowledge_base.startswith("Error"):
@@ -42,7 +42,7 @@ elif knowledge_base.startswith("Error"):
 else:
     st.sidebar.error("❌ ERROR: company_data.pdf not found in GitHub root folder!")
     # Fallback to keep app running
-    knowledge_base = "Arcturus Group is a premier senior real estate advisory firm."
+    knowledge_base = "Explainercue is a premier senior explainervideos advisory firm."
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -58,11 +58,11 @@ if user_input := st.chat_input("Ask anything about Arcturus Group..."):
     
     if not api_key:
         answer = "ERROR: GEMINI_API_KEY is missing in Streamlit Secrets!"
-    elif not knowledge_base or knowledge_base.startswith("Arcturus Group is a premier"):
+    elif not knowledge_base or knowledge_base.startswith("ExplainerCue is a premier"):
         answer = "I am sorry, but I cannot access the full company documentation right now. Please ensure company_data.pdf is uploaded to GitHub."
     else:
         # Strict English Prompt with PDF context
-        system_prompt = f"""You are a professional Business & Real Estate Assistant. 
+        system_prompt = f"""You are a professional Business & Explainer Video Assistant. 
 Your task is to answer user queries strictly based on the provided Context Data below. 
 If the answer cannot be found in the context, politely state that you do not have this information.
 
