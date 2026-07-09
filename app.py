@@ -32,7 +32,7 @@ def read_pdf_knowledge_base():
 knowledge_base = read_pdf_knowledge_base()
 
 # --- Streamlit UI Setup ---
-st.title("ExplainerCue Group AI Assistant")
+st.title("ExplainerCue AI Assistant")
 
 # Sidebar status validation
 if knowledge_base and not knowledge_base.startswith("Error"):
