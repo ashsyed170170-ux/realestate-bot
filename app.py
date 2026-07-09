@@ -52,10 +52,9 @@ Context Data:
 
 CRITICAL CONSTRAINT: You must respond ONLY and strictly in the English language. Even if the user asks questions in Roman Urdu or Hindi, your entire response must be written in clear, professional English. Do not use any non-English words."""
         
-        # Direct Gemini API URL for Gemini 2.5 Flash
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        # FIXED: Using the globally available gemini-1.5-flash endpoint
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
-        # Dono text ko ek hi string mein structure kar ke bhej rahe hain (Format Fix)
         full_prompt_text = f"{system_prompt}\n\nUser Question: {user_input}"
         
         payload = {
@@ -74,7 +73,6 @@ CRITICAL CONSTRAINT: You must respond ONLY and strictly in the English language.
                 res_data = response.json()
                 answer = res_data['candidates'][0]['content']['parts'][0]['text']
             else:
-                # Agar phir bhi masla aaye to exact error detail print hogi screen par
                 answer = f"API Error (Status {response.status_code}): {response.text}"
         except Exception as e:
             answer = f"Connection Error: Could not connect to Gemini API. {str(e)}"
